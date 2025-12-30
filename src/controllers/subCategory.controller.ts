@@ -58,10 +58,6 @@ export const getSubCategories = async (req: Request, res: Response) => {
 
         const subCategories = await SubCategory.findAll({ where });
 
-        if (subCategories.length === 0) {
-            return res.status(404).json({ message: "No sub-categories found" });
-        }
-
         return res.status(200).json({ data: { subCategories: subCategories, message: "Sub-categories fetched successfully" } });
     } catch (error) {
         console.error(error);

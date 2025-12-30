@@ -33,7 +33,8 @@ class Item extends Model {
                     references: {
                         model: 'sub_categories',
                         key: 'id'
-                    }
+                    },
+                    onDelete: "CASCADE",
                 },
                 brand: {
                     type: DataTypes.STRING,
@@ -70,7 +71,9 @@ class Item extends Model {
         Item.belongsTo(models.SubCategory, {
             foreignKey: "sub_category_id",
             as: "subCategory",
+            onDelete: "CASCADE",
         });
+
     }
 }
 

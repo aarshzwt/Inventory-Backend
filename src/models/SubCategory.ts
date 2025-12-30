@@ -28,7 +28,8 @@ class SubCategory extends Model {
                     references: {
                         model: 'categories',
                         key: 'id'
-                    }
+                    },
+                    onDelete: "CASCADE",
                 },
                 createdAt: {
                     type: DataTypes.DATE,
@@ -61,11 +62,14 @@ class SubCategory extends Model {
         SubCategory.belongsTo(models.Category, {
             foreignKey: "category_id",
             as: "category",
+            onDelete: "CASCADE",
         });
 
         SubCategory.hasMany(models.Item, {
             foreignKey: "sub_category_id",
             as: "items",
+            onDelete: "CASCADE",
+            hooks: true,
         });
     }
 }

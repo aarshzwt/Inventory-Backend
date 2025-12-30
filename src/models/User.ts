@@ -96,6 +96,16 @@ class User extends Model<
 
         return User;
     }
+
+    static associate(models: any) {
+        User.hasMany(models.Subscription, {
+            foreignKey: "user_id",
+            as: "subscriptions",
+            onDelete: "CASCADE",
+            hooks: true,
+        });
+    }
+
 }
 
 // Instance methods

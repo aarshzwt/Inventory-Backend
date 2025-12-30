@@ -52,6 +52,8 @@ class Category extends Model {
         Category.hasMany(models.SubCategory, {
             foreignKey: "category_id",
             as: "subCategories",
+            onDelete: "CASCADE",
+            hooks: true,
         });
     }
 }

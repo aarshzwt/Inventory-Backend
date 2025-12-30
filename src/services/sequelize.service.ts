@@ -24,6 +24,9 @@ const sequelizeService = {
 
       await sequelize.authenticate();
       console.log("App database connected...");
+      // sequelize
+      //   .sync({ alter: true }) // Automatically update table structure
+      //   .then(() => console.log("APP Models synced..."));
     } catch (error) {
       console.error("[SEQUELIZE] Error during database service initialization");
       throw error;

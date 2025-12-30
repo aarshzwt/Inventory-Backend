@@ -22,7 +22,12 @@ class Subscription extends Model {
                 },
                 user_id: {
                     type: DataTypes.INTEGER,
-                    allowNull: false
+                    allowNull: false,
+                    references: {
+                        model: "users",
+                        key: "id",
+                    },
+                    onDelete: "CASCADE",
                 },
                 endpoint: {
                     type: DataTypes.STRING,
@@ -67,7 +72,9 @@ class Subscription extends Model {
         Subscription.belongsTo(models.User, {
             foreignKey: "user_id",
             as: "user",
+            onDelete: "CASCADE",
         });
+
     }
 }
 

@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import Category from "../models/Category";
+import SubCategory from "../models/SubCategory";
+import Item from "../models/Item";
 
 /**
  * CREATE CATEGORY
@@ -95,13 +97,26 @@ export const updateCategory = async (req: Request, res: Response) => {
  */
 export const deleteCategory = async (req: Request, res: Response) => {
     try {
-        const category = await Category.findByPk(req.params.id);
+        const categoryId = Number(req.params.id);
 
-        if (!category) {
+        const deletedCount = await Category.destroy({
+            where: { id: categoryId },
+            individualHooks: true, // ✅ fully supported here
+        });
+
+        await SubCategory.destroy({
+            where: { category_id: categoryId },
+            individualHooks: true,
+        });
+
+        // await Item.destroy({
+        //     where: { category_id: categoryId },
+        //     individualHooks: true,
+        // })
+
+        if (!deletedCount) {
             return res.status(404).json({ message: "Category not found" });
         }
-
-        await category.destroy(); // paranoid => soft delete
 
         return res.status(200).json({
             message: "Category deleted successfully",
@@ -111,3 +126,4 @@ export const deleteCategory = async (req: Request, res: Response) => {
         return res.status(500).json({ message: "Failed to delete category" });
     }
 };
+

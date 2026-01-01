@@ -21,7 +21,7 @@ export const createCategory = async (req: Request, res: Response) => {
 
         const category = await Category.create({ name });
 
-        return res.status(201).json({
+        return res.status(200).json({
             message: "Category created successfully",
             category,
         });

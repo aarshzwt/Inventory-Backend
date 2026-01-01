@@ -4,6 +4,8 @@ import Item from "../models/Item";
 import SubCategory from "../models/SubCategory";
 import Subscription from "../models/Subscription";
 import User from "../models/User";
+import CartItem from "../models/CartItem";
+import Cart from "../models/Cart";
 
 const sequelizeService = {
   init: async () => {
@@ -14,6 +16,8 @@ const sequelizeService = {
         SubCategory: SubCategory.initModel(sequelize),
         Item: Item.initModel(sequelize),
         Subscription: Subscription.initModel(sequelize),
+        Cart: Cart.initModel(sequelize),
+        CartItem: CartItem.initModel(sequelize)
       };
 
       Object.values(appModels).forEach((model: any) => {
@@ -26,7 +30,7 @@ const sequelizeService = {
       console.log("App database connected...");
       // sequelize
       //   .sync({ alter: true }) // Automatically update table structure
-      //   .then(() => console.log("APP Models synced..."));
+      //   .then(() => console.log("APP Models synced... \n Ready to go!"));
     } catch (error) {
       console.error("[SEQUELIZE] Error during database service initialization");
       throw error;

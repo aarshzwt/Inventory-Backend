@@ -8,6 +8,8 @@ export const CREATE_ITEM_SCHEMA = Yup.object().shape({
         .min(0, "Limit must be at least 0")
         .max(100, "Limit cannot exceed 100").optional(),
     brand: Yup.string().required("Brand is required"),
+    price: Yup.number().min(1),
+    description: Yup.string().required("Description is required"),
 });
 
 export const UPDATE_ITEM_SCHEMA = Yup.object().shape({
@@ -17,6 +19,8 @@ export const UPDATE_ITEM_SCHEMA = Yup.object().shape({
     stock: Yup.number().optional().integer("Limit must be an integer")
         .min(0, "Limit must be at least 0")
         .max(100, "Limit cannot exceed 100"),
+    price: Yup.number().min(1),
+    description: Yup.string().required("Description is required"),
 });
 
 export const UPDATE_ITEM_STOCK_SCHEMA = Yup.object().shape({

@@ -45,6 +45,7 @@ const expressService = {
       server.use(cors(corsOptions));
       server.use(bodyParser.json());
       server.use(cookieParser());
+      server.use("/uploads/image", express.static(path.join(__dirname, "../../uploads/image")));
       routes.forEach(({ route, routeName }) => {
         server.use(`/api/${routeName}`, route);
       });

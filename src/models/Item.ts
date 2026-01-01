@@ -4,8 +4,11 @@ class Item extends Model {
     declare id: CreationOptional<number>;
     declare name: string;
     declare stock: number;
+    declare price: number;
+    declare image: string | null;
     declare sub_category_id: number;
     declare brand: string | null;
+    declare description: string;
     declare createdAt: CreationOptional<Date>;
     declare updatedAt: CreationOptional<Date>;
     declare deletedAt: CreationOptional<Date | null>;
@@ -23,6 +26,13 @@ class Item extends Model {
                     type: DataTypes.STRING,
                     allowNull: false
                 },
+                price: {
+                    type: DataTypes.DECIMAL(10, 2),
+                    allowNull: false,
+                    validate: {
+                        min: 0,
+                    },
+                },
                 stock: {
                     type: DataTypes.INTEGER,
                     allowNull: false
@@ -38,6 +48,14 @@ class Item extends Model {
                 },
                 brand: {
                     type: DataTypes.STRING,
+                    allowNull: true
+                },
+                description: {
+                    type: DataTypes.STRING,
+                    allowNull: true
+                },
+                image: {
+                    type: DataTypes.STRING(255),
                     allowNull: true
                 },
                 createdAt: {
@@ -74,6 +92,10 @@ class Item extends Model {
             onDelete: "CASCADE",
         });
 
+        Item.hasMany(models.CartItem, {
+            foreignKey: "item_id",
+            as: "cartItems",
+        });
     }
 }
 

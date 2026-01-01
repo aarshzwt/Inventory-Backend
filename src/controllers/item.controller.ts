@@ -10,27 +10,21 @@ import { getPagination, getPagingData, notify } from "../utils/utilityFunctions"
  */
 export const createItem = async (req: Request, res: Response) => {
     try {
-        const { name, sub_category_id, stock = 0, brand } = req.body;
-
+        const { name, sub_category_id, stock = 0, brand, price } = req.body;
+        const image = req.file ? `/uploads/image/${req.file.filename}` : null;
         // Ensure sub-category exists
         const subCategory = await SubCategory.findByPk(sub_category_id);
         if (!subCategory) {
             return res.status(404).json({ message: "Sub-category not found" });
         }
 
-        // Check for existing item with same name under the same sub-category and brand
-        const existing = await Item.findOne({
-            where: { name, sub_category_id, brand, deletedAt: null },
-        });
-
-        if (existing)
-            return res.status(400).json({ message: "Item already exists" });
-
         const item = await Item.create({
             name,
             sub_category_id,
             stock,
             ...brand && { brand },
+            image,
+            price
         });
 
         return res.status(200).json({
@@ -107,6 +101,9 @@ export const getItems = async (req: Request, res: Response) => {
             name: item.name,
             stock: item.stock,
             brand: item.brand,
+            price: item.price,
+            description: item.description,
+            image: item.image,
             sub_category_id: item.sub_category_id ?? null,
             category_id: item.subCategory?.category.id ?? null,
             subCategoryName: item.subCategory?.name ?? null,
@@ -139,6 +136,9 @@ export const getItemById = async (req: Request, res: Response) => {
                 "name",
                 "stock",
                 "brand",
+                "price",
+                "image",
+                "description",
                 [col("subCategory.name"), "subCategoryName"],
                 [col("subCategory->category.name"), "categoryName"],
                 "createdAt",
@@ -165,7 +165,7 @@ export const getItemById = async (req: Request, res: Response) => {
             return res.status(404).json({ message: "Item not found" });
         }
 
-        return res.status(200).json(item);
+        return res.status(200).json({ data: { item } });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: "Failed to fetch item" });
@@ -178,50 +178,57 @@ export const getItemById = async (req: Request, res: Response) => {
 export const updateItem = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { sub_category_id, name, brand, stock } = req.body;
+        const { sub_category_id, name, brand, stock, price, description } = req.body;
+        console.log(price, description)
 
         const item = await Item.findByPk(id);
         if (!item) {
             return res.status(404).json({ message: "Item not found" });
         }
 
-        if (stock !== undefined) {
-            //alert admin when stock is below threshold
-            if (stock > 100) {
-                return res.status(400).json({ message: `Cannot restock beyond maximum limit of 100 units. Current stock: ${item.stock} ` });
-            }
-            if (item.stock >= 5 && stock < 5) {
-                console.log(`Alert: Stock for item ID ${id} has fallen below threshold. Current stock: ${stock}`);
-
-                const payload = JSON.stringify({
-                    title: "LOW STOCK ALERT",
-                    message: `Stock for item ${item.name} is low: ${stock} left in inventory.`,
-                });
-
-                notify('admin', payload);
-            }
-            //alert admin when item is out of stock
-            if (stock === 0) {
-                console.log(`Alert: Item ID ${id} is out of stock. Current stock: ${stock}`);
-
-                const payload = JSON.stringify({
-                    title: "OUT OF STOCK ALERT",
-                    message: `Item ${item.name} is now completely out of stock. Restore it ASAP.`,
-                });
-
-                notify('admin', payload);
-            }
-            //alert user when stock is restored to max
-            if (stock === 100) {
-                const payload = JSON.stringify({
-                    title: "MAX STOCK ALERT",
-                    message: `Stock for item ${item.name} has been restored.`,
-                });
-
-                notify('user', payload);
-            }
+        /** IMAGE */
+        let image: string | undefined;
+        if (req.file) {
+            image = `/uploads/image/${req.file.filename}`;
         }
 
+        /** STOCK LOGIC */
+        if (stock !== undefined) {
+            if (stock > 100) {
+                return res.status(400).json({
+                    message: `Cannot restock beyond maximum limit of 100 units. Current stock: ${item.stock}`,
+                });
+            }
+            // if (item.stock >= 5 && stock < 5) {
+            //     notify(
+            //         "admin",
+            //         JSON.stringify({
+            //             title: "LOW STOCK ALERT",
+            //             message: `Stock for item ${item.name} is low: ${stock}`,
+            //         })
+            //     );
+            // }
+            // if (stock === 0) {
+            //     notify(
+            //         "admin",
+            //         JSON.stringify({
+            //             title: "OUT OF STOCK ALERT",
+            //             message: `Item ${item.name} is out of stock.`,
+            //         })
+            //     );
+            // }
+            // if (stock === 100) {
+            //     notify(
+            //         "user",
+            //         JSON.stringify({
+            //             title: "MAX STOCK ALERT",
+            //             message: `Stock for item ${item.name} restored.`,
+            //         })
+            //     );
+            // }
+        }
+
+        /** SUB CATEGORY CHECK */
         if (sub_category_id) {
             const subCategory = await SubCategory.findByPk(sub_category_id);
             if (!subCategory) {
@@ -229,34 +236,40 @@ export const updateItem = async (req: Request, res: Response) => {
             }
         }
 
-        if (name) {
-            // Check for existing item with same name under the same sub-category and brand
-            const existing = await Item.findOne({
-                where: {
-                    name,
-                    sub_category_id: sub_category_id || item.sub_category_id,
-                    brand: brand || item.brand,
-                    deletedAt: null,
-                    id: { [Op.ne]: id }, // exclude current item
-                },
-            });
-            if (existing) {
-                return res.status(400).json({ message: "Item with the same name already exists" });
-            }
-        }
+        // /** DUPLICATE NAME CHECK */
+        // if (name) {
+        //     const existing = await Item.findOne({
+        //         where: {
+        //             name,
+        //             sub_category_id: sub_category_id || item.sub_category_id,
+        //             brand: brand || item.brand,
+        //             id: { [Op.ne]: id },
+        //             deletedAt: null,
+        //         },
+        //     });
 
+        //     if (existing) {
+        //         return res
+        //             .status(400)
+        //             .json({ message: "Item with the same name already exists" });
+        //     }
+        // }
+
+        /** UPDATE PAYLOAD */
         const updatedData = {
-            ...name && { name },
-            ...sub_category_id && { sub_category_id },
-            ...brand && { brand },
-            ...stock !== undefined && { stock },
-        }
+            ...(name && { name }),
+            ...(sub_category_id && { sub_category_id }),
+            ...(brand && { brand }),
+            ...(stock !== undefined && { stock }),
+            ...(image && { image }),
+            ...(price && { price }),
+            ...(description && { description })
+        };
 
         await item.update(updatedData);
 
         return res.status(200).json({
             message: "Item updated successfully",
-            // item,
         });
     } catch (error) {
         console.error(error);

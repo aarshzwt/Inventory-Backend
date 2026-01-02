@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+// Sequelize only works on the CommonJS, so inorder to run migrations and seeders, had to make a seperate file with js
 module.exports = {
   development: {
     username: process.env.DB_USER,

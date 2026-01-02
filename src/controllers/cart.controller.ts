@@ -250,5 +250,57 @@ export const checkoutCart = async (
     }
 };
 
+export const getOrderHistory = async (req: any, res: Response) => {
+    const userId = req.id
 
+    const orders = await Cart.findAll({
+        where: {
+            user_id: userId,
+            status: "checked_out",
+        },
+        order: [["createdAt", "DESC"]],
+        attributes: ["id", "createdAt", "status"],
+        include: [
+            {
+                model: CartItem,
+                as: "items",
+                attributes: [
+                    "id",
+                    "quantity",
+                    "price",
 
+                    [literal("`items->item`.`name`"), "item_name"],
+                    [literal("`items->item`.`brand`"), "item_brand"],
+                    [literal("`items->item`.`image`"), "item_image"],
+
+                    // Only names of Catwgory and SubCategory
+                    [literal("`items->item->subCategory`.`name`"), "sub_category_name"],
+                    [literal("`items->item->subCategory->category`.`name`"), "category_name"],
+                ],
+                include: [
+                    {
+                        model: Item,
+                        as: "item",
+                        attributes: [],
+                        include: [
+                            {
+                                model: SubCategory,
+                                as: "subCategory",
+                                attributes: [],
+                                include: [
+                                    {
+                                        model: Category,
+                                        as: "category",
+                                        attributes: [],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    })
+
+    return res.status(200).json({ data: { orders } })
+}

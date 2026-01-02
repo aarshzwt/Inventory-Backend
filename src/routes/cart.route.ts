@@ -1,11 +1,13 @@
 import { Router } from "express";
 import { authorizeRole } from "../middlewares/authorizeRole";
-import { addToCart, checkoutCart, getCart, removeCartItem, updateCartItem } from "../controllers/cart.controller";
+import { addToCart, checkoutCart, getCart, getOrderHistory, removeCartItem, updateCartItem } from "../controllers/cart.controller";
 
 const router = Router();
 
 router.post("/", authorizeRole(["user", "admin"]), addToCart);
 router.get("/", authorizeRole(["user", "admin"]), getCart);
+router.get("/orders", authorizeRole(["user"]), getOrderHistory)
+
 router.patch("/:cartItemId", authorizeRole(["user", "admin"]), updateCartItem);
 router.delete("/:cartItemId", authorizeRole(["user", "admin"]), removeCartItem);
 router.post("/checkout", authorizeRole(["admin", "user"]), checkoutCart)

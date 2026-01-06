@@ -1,7 +1,5 @@
 import { Request, Response } from "express";
 import Category from "../models/Category";
-import SubCategory from "../models/SubCategory";
-import Item from "../models/Item";
 
 /**
  * CREATE CATEGORY
@@ -101,18 +99,8 @@ export const deleteCategory = async (req: Request, res: Response) => {
 
         const deletedCount = await Category.destroy({
             where: { id: categoryId },
-            individualHooks: true, // ✅ fully supported here
-        });
-
-        await SubCategory.destroy({
-            where: { category_id: categoryId },
             individualHooks: true,
         });
-
-        // await Item.destroy({
-        //     where: { category_id: categoryId },
-        //     individualHooks: true,
-        // })
 
         if (!deletedCount) {
             return res.status(404).json({ message: "Category not found" });

@@ -11,7 +11,7 @@ const router = Router();
 router.post("/", authorizeRole(["admin"]), imageUpload.single("image"), validate(CREATE_ITEM_SCHEMA), createItem); //create
 router.get("/", getItems); //get all
 router.get("/:id", getItemById); //get by id
-router.patch("/:id", authorizeRole(["admin"]), imageUpload.single("image"), validate(UPDATE_ITEM_SCHEMA), updateItem); //update/restock
+router.patch("/:id", authorizeRole(["admin"]), imageUpload.single("image"), updateItem); //update/restock
 router.patch('/stock/:id', authorizeRole(['admin', 'user']), validate(UPDATE_ITEM_STOCK_SCHEMA), updateItemStock); //update stock only
 router.delete("/:id", authorizeRole(["admin"]), deleteItem); //delete
 

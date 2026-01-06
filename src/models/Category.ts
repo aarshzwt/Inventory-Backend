@@ -55,6 +55,14 @@ class Category extends Model {
             onDelete: "CASCADE",
             hooks: true,
         });
+
+        Category.addHook("beforeDestroy", async (category: any, options: any) => {
+            await models.SubCategory.destroy({
+                where: { category_id: category.id },
+                transaction: options.transaction,
+                individualHooks: true,
+            });
+        });
     }
 }
 

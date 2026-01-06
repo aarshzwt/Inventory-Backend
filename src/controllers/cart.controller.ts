@@ -264,6 +264,7 @@ export const getOrderHistory = async (req: any, res: Response) => {
             {
                 model: CartItem,
                 as: "items",
+                paranoid: false,
                 attributes: [
                     "id",
                     "quantity",
@@ -281,16 +282,19 @@ export const getOrderHistory = async (req: any, res: Response) => {
                     {
                         model: Item,
                         as: "item",
+                        paranoid: false,
                         attributes: [],
                         include: [
                             {
                                 model: SubCategory,
                                 as: "subCategory",
+                                paranoid: false,
                                 attributes: [],
                                 include: [
                                     {
                                         model: Category,
                                         as: "category",
+                                        paranoid: false,
                                         attributes: [],
                                     },
                                 ],

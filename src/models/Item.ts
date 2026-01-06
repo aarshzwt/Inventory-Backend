@@ -86,6 +86,13 @@ class Item extends Model {
     }
 
     static associate(models: any) {
+        Item.addHook("beforeDestroy", async (item: any, options: any) => {
+            await models.CartItem.destroy({
+                where: { item_id: item.id },
+                transaction: options.transaction,
+            });
+        });
+
         Item.belongsTo(models.SubCategory, {
             foreignKey: "sub_category_id",
             as: "subCategory",

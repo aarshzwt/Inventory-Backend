@@ -1,4 +1,6 @@
 import { Sequelize, Model, DataTypes, ModelStatic, CreationOptional } from "sequelize";
+import SubCategory from "./SubCategory";
+import Category from "./Category";
 
 class Item extends Model {
     declare id: CreationOptional<number>;
@@ -12,6 +14,8 @@ class Item extends Model {
     declare createdAt: CreationOptional<Date>;
     declare updatedAt: CreationOptional<Date>;
     declare deletedAt: CreationOptional<Date | null>;
+    declare subCategory: SubCategory;
+    declare category: Category;
 
     static initModel(sequelize: Sequelize): ModelStatic<Item> {
         Item.init(

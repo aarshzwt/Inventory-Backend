@@ -26,13 +26,53 @@ export const addToCart = async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.id;
     const { item_id, quantity } = req.body;
 
-    const item = await Item.findByPk(item_id);
+    const item = await Item.findByPk(item_id, {
+        include: [
+            {
+                model: SubCategory,
+                as: "subCategory",
+                attributes: ['name'],
+                required: true,
+                include: [
+                    {
+                        model: Category,
+                        as: "category",
+                        required: true,
+                        attributes: ['name'],
+                    },
+                ],
+            },
+        ],
+    });
+
     if (!item) return res.status(404).json({ message: "Item not found" });
 
     if (quantity > item.stock) {
         return res.status(400).json({ message: "Not enough stock available" });
     }
 
+    // IF GUEST USER
+    if (!userId) {
+        return res.status(200).json({
+            data: {
+                message: "Guest cart item validated",
+                item: {
+                    id: item.id,
+                    item_id: item.id,
+                    item_name: item.name,
+                    item_brand: item.brand,
+                    item_image: item.image,
+                    item_stock: item.stock,
+                    category_name: item.subCategory.category.name,
+                    sub_category_name: item.subCategory.name,
+                    price: item.price,
+                    quantity, // requested quantity only
+                },
+            }
+        })
+    }
+
+    //IF AUTHENTICATED USER
     const cart = await getOrCreateCart(userId!);
 
     const existing = await CartItem.findOne({
@@ -249,6 +289,37 @@ export const checkoutCart = async (
         });
     }
 };
+
+export const mergeCart = async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.id!
+    const { items } = req.body
+
+    const cart = await getOrCreateCart(userId)
+
+    for (const item of items) {
+        const dbItem = await Item.findByPk(item.item_id)
+        if (!dbItem) continue
+
+        const existing = await CartItem.findOne({
+            where: { cart_id: cart.id, item_id: item.item_id },
+        })
+
+        if (existing) {
+            const qty = Math.min(existing.quantity + item.quantity, dbItem.stock)
+            await existing.update({ quantity: qty })
+        } else {
+            await CartItem.create({
+                cart_id: cart.id,
+                item_id: item.item_id,
+                quantity: Math.min(item.quantity, dbItem.stock),
+                price: dbItem.price,
+            })
+        }
+    }
+
+    return res.status(200).json({ message: "Cart merged" })
+}
+
 
 export const getOrderHistory = async (req: any, res: Response) => {
     const userId = req.id

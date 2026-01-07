@@ -10,7 +10,7 @@ import { getPagination, getPagingData, notify } from "../utils/utilityFunctions"
  */
 export const createItem = async (req: Request, res: Response) => {
     try {
-        const { name, sub_category_id, stock = 0, brand, price } = req.body;
+        const { name, sub_category_id, stock = 0, brand, price, description } = req.body;
         const image = req.file ? `/uploads/image/${req.file.filename}` : null;
         // Ensure sub-category exists
         const subCategory = await SubCategory.findByPk(sub_category_id);
@@ -24,7 +24,8 @@ export const createItem = async (req: Request, res: Response) => {
             stock,
             ...brand && { brand },
             image,
-            price
+            price,
+            description
         });
 
         return res.status(200).json({
@@ -52,7 +53,17 @@ export const getItems = async (req: Request, res: Response) => {
             maxStock,
             page,
             limit,
+            sortBy = "createdAt",
+            sortOrder = "ASC"
         } = req.query;
+
+        const sortField =
+            typeof sortBy === "string" ? sortBy : "createdAt";
+
+        const order =
+            typeof sortOrder === "string" && ["ASC", "DESC"].includes(sortOrder.toUpperCase())
+                ? (sortOrder.toUpperCase() as "ASC" | "DESC")
+                : "ASC";
 
         const { _page, _limit, offset } = getPagination(
             page as string,
@@ -94,6 +105,7 @@ export const getItems = async (req: Request, res: Response) => {
                     ],
                 },
             ],
+            order: [[sortField, order]],
         });
 
         const response = items.map((item: any) => ({

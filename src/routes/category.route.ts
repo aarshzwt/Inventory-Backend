@@ -11,7 +11,7 @@ import { authorizeRole } from "../middlewares/authorizeRole";
 const router = Router();
 
 router.post("/", authorizeRole(["admin"]), createCategory); //create
-router.get("/", authorizeRole(["admin", "user"]), getCategories); //get all
+router.get("/", getCategories); //get all
 router.get("/:id", authorizeRole(["admin", "user"]), getCategoryById); //get by id
 router.patch("/:id", authorizeRole(["admin"]), updateCategory); //update
 router.delete("/:id", authorizeRole(["admin"]), deleteCategory); //soft delete
